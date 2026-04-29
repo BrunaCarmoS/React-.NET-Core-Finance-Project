@@ -1,14 +1,27 @@
 import React from "react";
+import { PortfolioGet } from "../../../Models/Portfolio";
 
-type Props = {};
+interface Props {
+  portfolioValues: PortfolioGet[];
+  onPortfolioDelete: (e: React.SyntheticEvent) => void;
+}
 
-const ListPortfolio = (props: Props) => {
+const ListPortfolio = ({ portfolioValues, onPortfolioDelete }: Props) => {
   return (
-    <ul>
-      <li>MSFT</li>
-      <li>AAPL</li>
-      <li>TSLA</li>
-    </ul>
+    <div>
+      <form onSubmit={onPortfolioDelete}>
+        <ul>
+          {portfolioValues.map((value) => (
+            <li key={value.id}>
+              {value.symbol}
+              <button type="submit" value={value.symbol}>
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      </form>
+    </div>
   );
 };
 
