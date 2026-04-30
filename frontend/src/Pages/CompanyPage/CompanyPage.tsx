@@ -56,9 +56,8 @@ const CompanyPage = (props: Props) => {
             setActiveSideBarItem={setActiveSideBarItem}
             activeSidebarItem={activeSidebarItem!}
           />
-          <CompanyDashboard
-            tabItems={tabItems}
-            activeSidebarItem={activeSidebarItem!}
+          <CompanyDashboard 
+            ticker={ticker!}
           >
             <Tile title="Company Name" subTitle={company.companyName} />
             <Tile title="DCF" subTitle={company.dcf.toString()} />
