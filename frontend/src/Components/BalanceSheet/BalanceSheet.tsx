@@ -1,99 +1,79 @@
 import React, { useEffect, useState } from "react";
-import { CompanyBalanceSheet } from "../../company";
 import { useOutletContext } from "react-router-dom";
+import { getKeyMetrics } from "../../api";
+import { CompanyKeyMetrics } from "../../company";
 import RatioList from "../RatioList/RatioList";
-import { getBalanceSheet } from "../../api";
-import Table from "../Table/Table";
 import Spinner from "../Spinners/Spinner";
 import {
   formatLargeMonetaryNumber,
-  formatLargeNonMonetaryNumber,
+  formatRatio,
 } from "../../Helpers/NumberFormatting";
 
 type Props = {};
 
 const config = [
   {
-    label: <div className="font-bold">Total Assets</div>,
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.totalAssets),
+    label: <div className="font-bold">Debt / Equity (Annual)</div>,
+    render: (m: CompanyKeyMetrics) => formatRatio(m.totalDebtToEquityAnnual),
+    subTitle: "Dívida total dividida pelo patrimônio líquido",
   },
   {
-    label: "Current Assets",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.totalCurrentAssets),
+    label: "Long-Term Debt / Equity (Annual)",
+    render: (m: CompanyKeyMetrics) =>
+      formatRatio(m.longTermDebtToEquityAnnual),
+    subTitle: "Dívida de longo prazo dividida pelo patrimônio líquido",
   },
   {
-    label: "Total Cash",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.cashAndCashEquivalents),
+    label: "Current Ratio (Annual)",
+    render: (m: CompanyKeyMetrics) => formatRatio(m.currentRatioAnnual),
+    subTitle: "Capacidade de pagar dívidas de curto prazo",
   },
   {
-    label: "Property & equipment",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.propertyPlantEquipmentNet),
+    label: "Quick Ratio (Annual)",
+    render: (m: CompanyKeyMetrics) => formatRatio(m.quickRatioAnnual),
+    subTitle: "Liquidez imediata excluindo estoques",
   },
   {
-    label: "Intangible Assets",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.intangibleAssets),
+    label: "Book Value Per Share (Annual)",
+    render: (m: CompanyKeyMetrics) =>
+      formatLargeMonetaryNumber(m.bookValuePerShareTTM),
+    subTitle: "Valor patrimonial líquido por ação",
   },
   {
-    label: "Long Term Debt",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.longTermDebt),
+    label: "Tangible Book Value Per Share (Annual)",
+    render: (m: CompanyKeyMetrics) =>
+      formatLargeMonetaryNumber(m.tangibleBookValuePerShareAnnual),
+    subTitle: "Valor patrimonial tangível por ação (exclui intangíveis)",
   },
   {
-    label: "Total Debt",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.otherCurrentLiabilities),
-  },
-  {
-    label: <div className="font-bold">Total Liabilites</div>,
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.totalLiabilities),
-  },
-  {
-    label: "Current Liabilities",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.totalCurrentLiabilities),
-  },
-  {
-    label: "Long-Term Debt",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.longTermDebt),
-  },
-  {
-    label: "Long-Term Income Taxes",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.otherLiabilities),
-  },
-  {
-    label: "Stakeholder's Equity",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.totalStockholdersEquity),
-  },
-  {
-    label: "Retained Earnings",
-    render: (company: CompanyBalanceSheet) =>
-      formatLargeMonetaryNumber(company.retainedEarnings),
+    label: <div className="font-bold">Debt / Total Assets (Annual)</div>,
+    render: (m: CompanyKeyMetrics) =>
+      formatRatio(m.totalDebtToTotalAssetAnnual),
+    subTitle: "Percentual dos ativos financiados por dívida",
   },
 ];
 
 const BalanceSheet = (props: Props) => {
   const ticker = useOutletContext<string>();
-  const [companyData, setCompanyData] = useState<CompanyBalanceSheet>();
+  const [metrics, setMetrics] = useState<CompanyKeyMetrics | null>(null);
+
   useEffect(() => {
-    const getCompanyData = async () => {
-      const value = await getBalanceSheet(ticker!);
-      setCompanyData(value?.data[0]);
+    const fetchData = async () => {
+      const result = await getKeyMetrics(ticker!);
+      setMetrics(result);
     };
-    getCompanyData();
-  }, []);
+    fetchData();
+  }, [ticker]);
+
   return (
     <>
-      {companyData ? (
-        <RatioList config={config} data={companyData} />
+      {metrics ? (
+        <>
+          <p className="text-xs text-gray-400 ml-4 mt-2 w-full">
+            * Dados anuais — Finnhub plano gratuito
+          </p>
+          <RatioList config={config} data={metrics} />
+        </>
       ) : (
         <Spinner />
       )}

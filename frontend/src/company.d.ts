@@ -1,11 +1,17 @@
-export interface FinnhubSearchResult {
+// ─── Search ───────────────────────────────────────────────────────────────────
+export interface CompanySearch {
   description: string;
   displaySymbol: string;
   symbol: string;
   type: string;
+  name: string;
+  currency: string;
+  exchangeShortName: string;
+  stockExchange: string;
 }
 
-export interface FinnhubCompanyProfile {
+// ─── Company Profile ──────────────────────────────────────────────────────────
+export interface CompanyProfile {
   name: string;
   ticker: string;
   exchange: string;
@@ -13,20 +19,56 @@ export interface FinnhubCompanyProfile {
   marketCapitalization: number;
   logo: string;
   weburl: string;
+  currency: string;
+  country: string;
+  industry: string;
+  // aliases para CompanyPage
+  companyName: string;
+  symbol: string;
+  price: number;
+  dcf: number;
+  sector: string;
+  description: string;
 }
 
-export interface FinnhubMetrics {
-  peNormalizedAnnual?: number;
-  pbAnnual?: number;
-  psAnnual?: number;
-  dividendYieldIndicatedAnnual?: number;
-}
+// ─── Key Metrics — cobre CompanyProfile, IncomeStatement, BalanceSheet e CashFlow
+// Todos os campos vêm de /stock/metric?metric=all (plano gratuito Finnhub)
+export interface CompanyKeyMetrics {
+  // --- CompanyProfile / Valuation ---
+  marketCapTTM: number;
+  currentRatioTTM: number;
+  roeTTM: number;
+  returnOnTangibleAssetsTTM: number;
+  freeCashFlowPerShareTTM: number;
+  bookValuePerShareTTM: number;
+  dividendYieldTTM: number;
+  capexPerShareTTM: number;
+  grahamNumberTTM: number;
+  peRatioTTM: number;
 
-export interface FinnhubFinancialReport {
-  endDate: string;
-  report: {
-    ic?: any;
-    bs?: any;
-    cf?: any;
-  };
+  // --- Income Statement ---
+  epsTTM: number;
+  epsGrowthTTMYoy: number;
+  revenuePerShareTTM: number;
+  revenueGrowthTTMYoy: number;
+  grossMarginTTM: number;
+  operatingMarginTTM: number;
+  netProfitMarginTTM: number;
+  ebitdaPerShareTTM: number;
+
+  // --- Balance Sheet ---
+  totalDebtToEquityAnnual: number;
+  longTermDebtToEquityAnnual: number;
+  currentRatioAnnual: number;
+  quickRatioAnnual: number;
+  tangibleBookValuePerShareAnnual: number;
+  totalDebtToTotalAssetAnnual: number;
+
+  // --- Cash Flow ---
+  freeCashFlowTTM: number;
+  freeCashFlowYield: number;
+  cashFlowPerShareTTM: number;
+  cashFlowPerShareGrowthTTMYoy: number;
+  capexToSalesAnnual: number;
+  capexToOperatingCashFlowAnnual: number;
 }
