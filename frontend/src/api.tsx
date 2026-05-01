@@ -1,73 +1,82 @@
 import axios from "axios";
-import {
-  CompanyBalanceSheet,
-  CompanyIncomeStatement,
-  CompanyKeyMetrics,
-  CompanyProfile,
-  CompanySearch,
-} from "./company";
 
-export interface SearchResponse {
-  data: CompanySearch[];
-}
+const API_KEY = process.env.REACT_APP_API_KEY;
+const BASE_URL = "https://finnhub.io/api/v1";
+
+const authParams = () => {
+  if (!API_KEY) {
+    console.error("API KEY not defined!");
+  }
+  return `token=${API_KEY}`;
+};
 
 export const searchCompanies = async (query: string) => {
   try {
-    const data = await axios.get<SearchResponse>(
-      `https://financialmodelingprep.com/api/v3/search?query=${query}&limit=10&exchange=NASDAQ&apikey=${process.env.REACT_APP_API_KEY}`
+    const { data } = await axios.get<{ result: any[] }>(
+      `${BASE_URL}/search?q=${query}&${authParams()}`
     );
-    return data;
+
+    return data.result ?? [];
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.log("error message: ", error.message);
-      return error.message;
-    } else {
-      console.log("unexpected error: ", error);
-      return "An expected error has occured.";
-    }
+    console.log("Search error:", error);
+    return [];
   }
 };
 
-export const getCompanyProfile = async (query: string) => {
+export const getCompanyProfile = async (symbol: string) => {
   try {
-    const data = await axios.get<CompanyProfile[]>(
-      `https://financialmodelingprep.com/api/v3/profile/${query}?apikey=${process.env.REACT_APP_API_KEY}`
+    const { data } = await axios.get<any>(
+      `${BASE_URL}/stock/profile2?symbol=${symbol}&${authParams()}`
     );
-    return data;
-  } catch (error: any) {
-    console.log("error message: ", error.message);
+
+    return data ?? null;
+  } catch (error) {
+    console.log("Profile error:", error);
+    return null;
   }
 };
 
-export const getKeyMetrics = async (query: string) => {
+export const getKeyMetrics = async (symbol: string) => {
   try {
-    const data = await axios.get<CompanyKeyMetrics[]>(
-      `https://financialmodelingprep.com/api/v3/key-metrics-ttm/AAPL?limit=40&apikey=${process.env.REACT_APP_API_KEY}`
+    const { data } = await axios.get<{ metric: any }>(
+      `${BASE_URL}/stock/metric?symbol=${symbol}&metric=all&${authParams()}`
     );
-    return data;
-  } catch (error: any) {
-    console.log("error message: ", error.message);
+
+    return data.metric ?? null;
+  } catch (error) {
+    console.log("Metrics error:", error);
+    return null;
   }
 };
 
-export const getIncomeStatement = async (query: string) => {
+export const getIncomeStatement = async (symbol: string) => {
   try {
-    const data = await axios.get<CompanyIncomeStatement[]>(
-      `https://financialmodelingprep.com/api/v3/income-statement/${query}?limit=50&apikey=${process.env.REACT_APP_API_KEY}`
+    const { data } = await axios.get<{ data: any[] }>(
+      `${BASE_URL}/stock/financials-reported?symbol=${symbol}&${authParams()}`
     );
-    return data;
-  } catch (error: any) {
-    console.log("error message: ", error.message);
+
+    return (data.data ?? []).map((item) => ({
+      date: item.endDate,
+      income: item.report?.ic ?? null,
+    }));
+  } catch (error) {
+    console.log("Income error:", error);
+    return [];
   }
 };
 
-export const getBalanceSheet = async (query: string) => {
+export const getBalanceSheet = async (symbol: string) => {
   try {
-    const data = await axios.get<CompanyBalanceSheet[]>(
-      `https://financialmodelingprep.com/api/v3/balance-sheet-statement/${query}?limit=20&apikey=${process.env.REACT_APP_API_KEY}`
+    const { data } = await axios.get<{ data: any[] }>(
+      `${BASE_URL}/stock/financials-reported?symbol=${symbol}&${authParams()}`
     );
-    return data;
-  } catch (error: any) {
-    console.log("error message: ", error.message);
+    
+    return (data.data ?? []).map((item) => ({
+      date: item.endDate,
+      balance: item.report?.bs ?? null,
+    }));
+  } catch (error) {
+    console.log("Balance error:", error);
+    return [];
   }
 };

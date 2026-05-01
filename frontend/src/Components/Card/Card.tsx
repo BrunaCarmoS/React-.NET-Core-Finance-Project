@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, JSX } from "react";
+import React, { SyntheticEvent } from "react";
 import { Link } from "react-router-dom";
 import "./Card.css";
 import { CompanySearch } from "../../company";
@@ -22,7 +22,7 @@ const Card: React.FC<Props> = ({
       id={id}
     >
       <Link
-        to={`/company/${searchResult.symbol}`}
+        to={`/company/${searchResult.symbol}/company-profile`}
         className="font-bold text-center text-veryDarkViolet md:text-left"
       >
         {searchResult.name} ({searchResult.symbol})
