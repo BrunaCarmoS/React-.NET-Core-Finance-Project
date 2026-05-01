@@ -31,10 +31,9 @@ export interface CompanyProfile {
   description: string;
 }
 
-// ─── Key Metrics — cobre CompanyProfile, IncomeStatement, BalanceSheet e CashFlow
-// Todos os campos vêm de /stock/metric?metric=all (plano gratuito Finnhub)
+// ─── Key Metrics ──────────────────────────────────────────────────────────────
 export interface CompanyKeyMetrics {
-  // --- CompanyProfile / Valuation ---
+  // Valuation / CompanyProfile
   marketCapTTM: number;
   currentRatioTTM: number;
   roeTTM: number;
@@ -45,8 +44,7 @@ export interface CompanyKeyMetrics {
   capexPerShareTTM: number;
   grahamNumberTTM: number;
   peRatioTTM: number;
-
-  // --- Income Statement ---
+  // Income Statement
   epsTTM: number;
   epsGrowthTTMYoy: number;
   revenuePerShareTTM: number;
@@ -55,20 +53,27 @@ export interface CompanyKeyMetrics {
   operatingMarginTTM: number;
   netProfitMarginTTM: number;
   ebitdaPerShareTTM: number;
-
-  // --- Balance Sheet ---
+  // Balance Sheet
   totalDebtToEquityAnnual: number;
   longTermDebtToEquityAnnual: number;
   currentRatioAnnual: number;
   quickRatioAnnual: number;
   tangibleBookValuePerShareAnnual: number;
   totalDebtToTotalAssetAnnual: number;
-
-  // --- Cash Flow ---
+  // Cash Flow
   freeCashFlowTTM: number;
   freeCashFlowYield: number;
   cashFlowPerShareTTM: number;
   cashFlowPerShareGrowthTTMYoy: number;
   capexToSalesAnnual: number;
   capexToOperatingCashFlowAnnual: number;
+}
+
+// ─── Ten-K Filing ─────────────────────────────────────────────────────────────
+export interface CompanyTenK {
+  symbol: string;
+  fillingDate: string;  // mantido igual ao original para não quebrar TenKFinderItem
+  finalLink: string;    // mantido igual ao original
+  form: string;
+  reportUrl: string;
 }

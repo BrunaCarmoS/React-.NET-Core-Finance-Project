@@ -3,6 +3,7 @@ import {
   CompanySearch,
   CompanyProfile,
   CompanyKeyMetrics,
+  CompanyTenK,
 } from "./company";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -13,7 +14,7 @@ const auth = () => {
   return `token=${API_KEY}`;
 };
 
-const get = async <T>(path: string): Promise<T | null> => {
+const get = async <T,>(path: string): Promise<T | null> => {
   try {
     const { data } = await axios.get<T>(`${BASE_URL}${path}&${auth()}`);
     return data;
@@ -60,7 +61,6 @@ export const getCompanyProfile = async (symbol: string): Promise<CompanyProfile 
     currency: profile.currency ?? "",
     country: profile.country ?? "",
     industry: profile.finnhubIndustry ?? "",
-    // aliases para CompanyPage
     companyName: profile.name,
     symbol: profile.ticker ?? symbol,
     price: quote?.c ?? 0,
@@ -72,16 +72,13 @@ export const getCompanyProfile = async (symbol: string): Promise<CompanyProfile 
   };
 };
 
-// ─── Key Metrics (único endpoint gratuito com dados financeiros) ───────────────
-// Usado por: CompanyProfile, IncomeStatement, BalanceSheet e CashflowStatement
+// ─── Key Metrics ──────────────────────────────────────────────────────────────
 export const getKeyMetrics = async (symbol: string): Promise<CompanyKeyMetrics | null> => {
   const data = await get<{ metric: any }>(`/stock/metric?symbol=${symbol}&metric=all`);
   if (!data?.metric) return null;
 
   const m = data.metric;
-
   return {
-    // --- Valuation / CompanyProfile ---
     marketCapTTM: m.marketCapitalization ?? 0,
     currentRatioTTM: m.currentRatioTTM ?? m.currentRatioAnnual ?? 0,
     roeTTM: m.roeTTM ?? m.roeRfy ?? 0,
@@ -90,10 +87,8 @@ export const getKeyMetrics = async (symbol: string): Promise<CompanyKeyMetrics |
     bookValuePerShareTTM: m.bookValuePerShareAnnual ?? 0,
     dividendYieldTTM: m.dividendYieldIndicatedAnnual ?? 0,
     capexPerShareTTM: m.capitalExpenditureAnnual ?? 0,
-    grahamNumberTTM: 0, // não disponível no Finnhub
+    grahamNumberTTM: 0,
     peRatioTTM: m.peNormalizedAnnual ?? m.peTTM ?? 0,
-
-    // --- Income Statement ---
     epsTTM: m.epsTTM ?? 0,
     epsGrowthTTMYoy: m.epsGrowthTTMYoy ?? 0,
     revenuePerShareTTM: m.revenuePerShareTTM ?? 0,
@@ -102,16 +97,12 @@ export const getKeyMetrics = async (symbol: string): Promise<CompanyKeyMetrics |
     operatingMarginTTM: m.operatingMarginTTM ?? 0,
     netProfitMarginTTM: m.netProfitMarginTTM ?? 0,
     ebitdaPerShareTTM: m.ebitdaPerShareTTM ?? 0,
-
-    // --- Balance Sheet ---
     totalDebtToEquityAnnual: m.totalDebtToEquityAnnual ?? 0,
     longTermDebtToEquityAnnual: m.longTermDebtToEquityAnnual ?? 0,
     currentRatioAnnual: m.currentRatioAnnual ?? 0,
     quickRatioAnnual: m.quickRatioAnnual ?? 0,
     tangibleBookValuePerShareAnnual: m.tangibleBookValuePerShareAnnual ?? 0,
     totalDebtToTotalAssetAnnual: m.totalDebtToTotalAssetAnnual ?? 0,
-
-    // --- Cash Flow ---
     freeCashFlowTTM: m.freeCashFlowTTM ?? 0,
     freeCashFlowYield: m.freeCashFlowYieldTTM ?? 0,
     cashFlowPerShareTTM: m.cashFlowPerShareTTM ?? 0,
@@ -119,4 +110,26 @@ export const getKeyMetrics = async (symbol: string): Promise<CompanyKeyMetrics |
     capexToSalesAnnual: m.capexToSalesAnnual ?? 0,
     capexToOperatingCashFlowAnnual: m.capexToOperatingCashFlowAnnual ?? 0,
   };
+};
+
+// ─── Peers (CompFinder) ───────────────────────────────────────────────────────
+// Finnhub: GET /stock/peers?symbol=X → string[]
+export const getCompData = async (symbol: string): Promise<string[]> => {
+  const data = await get<string[]>(`/stock/peers?symbol=${symbol}`);
+  return data ?? [];
+};
+
+// ─── 10-K Filings (TenKFinder) ────────────────────────────────────────────────
+// Finnhub: GET /stock/filings?symbol=X&form=10-K → array de filings
+export const getTenK = async (symbol: string): Promise<CompanyTenK[]> => {
+  const data = await get<any[]>(`/stock/filings?symbol=${symbol}&form=10-K`);
+  if (!data) return [];
+
+  return data.map((item) => ({
+    symbol: symbol,
+    fillingDate: item.filedDate ?? "",   // Finnhub usa "filedDate"
+    finalLink: item.reportUrl ?? "",     // Finnhub usa "reportUrl"
+    form: item.form ?? "10-K",
+    reportUrl: item.reportUrl ?? "",
+  }));
 };
