@@ -70,6 +70,7 @@ const SearchPage = (props: Props) => {
   const onSearchSubmit = async (e: SyntheticEvent) => {
   e.preventDefault();
   const result = await searchCompanies(search);
+  console.log("resultado:", result); // <- adicione isso
   if (typeof result === "string") {
     setServerError(result);
   } else if (Array.isArray(result)) {

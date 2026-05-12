@@ -7,7 +7,8 @@ import {
 } from "./company";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-const BASE_URL = "https://finnhub.io/api/v1";
+const BASE_URL_BACKEND = "http://localhost:5167/api";
+const BASE_URL_FINNHUB = "https://finnhub.io/api/v1";
 
 const auth = () => {
   if (!API_KEY) console.error("REACT_APP_API_KEY não definida!");
@@ -16,7 +17,7 @@ const auth = () => {
 
 const get = async <T,>(path: string): Promise<T | null> => {
   try {
-    const { data } = await axios.get<T>(`${BASE_URL}${path}&${auth()}`);
+    const { data } = await axios.get<T>(`${BASE_URL_FINNHUB}${path}&${auth()}`);
     return data;
   } catch (err) {
     console.error(`Finnhub error [${path}]:`, err);
@@ -26,19 +27,24 @@ const get = async <T,>(path: string): Promise<T | null> => {
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 export const searchCompanies = async (query: string): Promise<CompanySearch[]> => {
-  const data = await get<{ result: any[] }>(`/search?q=${query}`);
-  if (!data?.result) return [];
+  try {
+    const { data } = await axios.get(`${BASE_URL_BACKEND}/search?q=${query}`);
+    if (!data?.result) return [];
 
-  return data.result.map((item) => ({
-    description: item.description ?? "",
-    displaySymbol: item.displaySymbol ?? "",
-    symbol: item.symbol ?? "",
-    type: item.type ?? "",
-    name: item.description ?? item.symbol,
-    currency: "",
-    exchangeShortName: "",
-    stockExchange: item.type ?? "",
-  }));
+    return data.result.map((item: any) => ({
+      description: item.description ?? "",
+      displaySymbol: item.displaySymbol ?? "",
+      symbol: item.symbol ?? "",
+      type: item.type ?? "",
+      name: item.description ?? item.symbol,
+      currency: "",
+      exchangeShortName: "",
+      stockExchange: item.type ?? "",
+    }));
+  } catch (err) {
+    console.error("Search error:", err);
+    return [];
+  }
 };
 
 // ─── Company Profile ──────────────────────────────────────────────────────────
@@ -113,22 +119,20 @@ export const getKeyMetrics = async (symbol: string): Promise<CompanyKeyMetrics |
 };
 
 // ─── Peers (CompFinder) ───────────────────────────────────────────────────────
-// Finnhub: GET /stock/peers?symbol=X → string[]
 export const getCompData = async (symbol: string): Promise<string[]> => {
   const data = await get<string[]>(`/stock/peers?symbol=${symbol}`);
   return data ?? [];
 };
 
 // ─── 10-K Filings (TenKFinder) ────────────────────────────────────────────────
-// Finnhub: GET /stock/filings?symbol=X&form=10-K → array de filings
 export const getTenK = async (symbol: string): Promise<CompanyTenK[]> => {
   const data = await get<any[]>(`/stock/filings?symbol=${symbol}&form=10-K`);
   if (!data) return [];
 
   return data.map((item) => ({
     symbol: symbol,
-    fillingDate: item.filedDate ?? "",   // Finnhub usa "filedDate"
-    finalLink: item.reportUrl ?? "",     // Finnhub usa "reportUrl"
+    fillingDate: item.filedDate ?? "",
+    finalLink: item.reportUrl ?? "",
     form: item.form ?? "10-K",
     reportUrl: item.reportUrl ?? "",
   }));
