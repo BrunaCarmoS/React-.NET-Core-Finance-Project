@@ -8,6 +8,7 @@ import {
   formatLargeNonMonetaryNumber,
   formatRatio,
 } from "../../Helpers/NumberFormatting";
+import StockComment from "../StockComment/StockComment";
 
 type Props = {};
 
@@ -16,79 +17,87 @@ const tableConfig = [
     label: "Market Cap",
     render: (company: CompanyKeyMetrics) =>
       formatLargeNonMonetaryNumber(company.marketCapTTM),
-    subTitle: "Valor total de todas as ações da empresa",
+    subTitle: "Total value of all a company's shares of stock",
   },
   {
     label: "Current Ratio",
     render: (company: CompanyKeyMetrics) =>
       formatRatio(company.currentRatioTTM),
-    subTitle: "Capacidade de pagar dívidas de curto prazo",
+    subTitle:
+      "Measures the companies ability to pay short term debt obligations",
   },
   {
     label: "Return On Equity",
     render: (company: CompanyKeyMetrics) => formatRatio(company.roeTTM),
-    subTitle: "Lucro líquido dividido pelo patrimônio dos acionistas",
+    subTitle:
+      "Return on equity is the measure of a company's net income divided by its shareholder's equity",
   },
   {
     label: "Return On Assets",
     render: (company: CompanyKeyMetrics) =>
       formatRatio(company.returnOnTangibleAssetsTTM),
-    subTitle: "Eficiência da empresa em usar seus ativos",
+    subTitle:
+      "Return on assets is the measure of how effective a company is using its assets",
   },
   {
     label: "Free Cashflow Per Share",
     render: (company: CompanyKeyMetrics) =>
       formatRatio(company.freeCashFlowPerShareTTM),
-    subTitle: "Fluxo de caixa livre por ação",
+    subTitle:
+      "Return on assets is the measure of how effective a company is using its assets",
   },
   {
-    label: "Book Value Per Share",
+    label: "Book Value Per Share TTM",
     render: (company: CompanyKeyMetrics) =>
       formatRatio(company.bookValuePerShareTTM),
-    subTitle: "Valor patrimonial líquido por ação",
+    subTitle:
+      "Book value per share indicates a firm's net asset value (total assets - total liabilities) on per share basis",
   },
   {
-    label: "Dividend Yield",
+    label: "Divdend Yield TTM",
     render: (company: CompanyKeyMetrics) =>
       formatRatio(company.dividendYieldTTM),
-    subTitle: "Quanto a empresa paga em dividendos em relação ao preço",
+    subTitle: "Shows how much a company pays each year relative to stock price",
   },
   {
-    label: "CapEx Per Share",
+    label: "Capex Per Share TTM",
     render: (company: CompanyKeyMetrics) =>
       formatRatio(company.capexPerShareTTM),
-    subTitle: "Investimento em ativos físicos por ação",
+    subTitle:
+      "Capex is used by a company to aquire, upgrade, and maintain physical assets",
   },
   {
     label: "Graham Number",
     render: (company: CompanyKeyMetrics) =>
-      company.grahamNumberTTM ? formatRatio(company.grahamNumberTTM) : "N/A",
-    subTitle: "Teto de preço para investidor defensivo (não disponível no Finnhub)",
+      formatRatio(company.grahamNumberTTM),
+    subTitle:
+      "This is the upperbouind of the price range that a defensive investor should pay for a stock",
   },
   {
     label: "PE Ratio",
     render: (company: CompanyKeyMetrics) => formatRatio(company.peRatioTTM),
-    subTitle: "Preço da ação dividido pelo lucro por ação",
+    subTitle:
+      "This is the upperbouind of the price range that a defensive investor should pay for a stock",
   },
 ];
 
 const CompanyProfile = (props: Props) => {
   const ticker = useOutletContext<string>();
-  const [companyData, setCompanyData] = useState<CompanyKeyMetrics | null>(null);
-
+  const [companyData, setCompanyData] = useState<CompanyKeyMetrics>();
   useEffect(() => {
-    const fetchMetrics = async () => {
-      // getKeyMetrics agora retorna CompanyKeyMetrics | null diretamente
+    const getCompanyKeyRatios = async () => {
       const value = await getKeyMetrics(ticker);
-      setCompanyData(value);
+      setCompanyData(value?.[0]);
     };
-    fetchMetrics();
-  }, [ticker]);
-
+    getCompanyKeyRatios();
+  }, []);
   return (
     <>
       {companyData ? (
-        <RatioList config={tableConfig} data={companyData} />
+        <>
+          <RatioList config={tableConfig} data={companyData} />
+          <StockComment stockSymbol={ticker} />
+        </>
       ) : (
         <Spinner />
       )}
